@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Angry Birds Clash 🚀</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            background: #090d16;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1280px;
+            max-height: 720px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #111827;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(9, 13, 22, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ef4444, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 12px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(239, 68, 68, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
+        }
+        .hud {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 5;
+            pointer-events: none;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        }
+        .hud-item {
+            background: rgba(17, 24, 39, 0.6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .level-text { color: #f59e0b; }
+        .birds-text { color: #ef4444; }
+        .score-text { color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- HUD -->
+        <div class="hud">
+            <div class="hud-item level-text" id="hud-level">Level 1</div>
+            <div class="hud-item birds-text" id="hud-birds">Birds: 3</div>
+            <div class="hud-item score-text" id="hud-score">Score: 0</div>
+        </div>
+
+        <!-- MAIN MENU -->
+        <div id="start-screen" class="ui-layer">
+            <h1>Angry Birds Clash</h1>
+            <p>Pull back the slingshot, aim, and defeat all enemies to advance!</p>
+            <div class="btn-group">
+                <button class="btn" onclick="startGame()">START GAME</button>
+            </div>
+        </div>
+
+        <!-- GAME OVER / WIN SCREEN -->
+        <div id="end-screen" class="ui-layer hidden">
+            <h1 id="end-title">LEVEL CLEAR!</h1>
+            <p id="end-subtitle">Great shot!</p>
+            <div class="btn-group">
+                <button class="btn" id="next-btn" onclick="nextLevel()">NEXT LEVEL</button>
+                <button class="btn btn-secondary" onclick="restartLevel()">RETRY</button>
+            </div>
+        </div>
+
+        <canvas id="canvas"></canvas>
+    </div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W = 1280, H = 720;
+let currentLevel = 1;
+let score = 0;
+let birdsRemaining = 3;
+
+let slingshot = { x: 180, y: H - 180 };
+let currentBird = null;
+let blocks = [];
+let enemies = [];
+let gameState = 'START'; // START, PLAYING, END
+
+let isDragging = false;
+let dragPos = { x: slingshot.x, y: slingshot.y };
+
+function resize() {
+    const container = document.getElementById('game-container');
+    W = container.clientWidth;
+    H = container.clientHeight;
+    canvas.width = W;
+    canvas.height = H;
+    slingshot = { x: 180, y: H - 180 };
+}
+window.addEventListener('resize', resize);
+resize();
+
+class Bird {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.radius = 18;
+        this.launched = false;
+    }
+    update() {
+        if (this.launched) {
+            this.vy += 0.35; // Gravity
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vx *= 0.99;
+            this.vy *= 0.99;
+
+            if (this.y + this.radius >= H - 80) {
+                this.y = H - 80 - this.radius;
+                this.vy *= -0.4;
+                this.vx *= 0.6;
+            }
+        }
+    }
+    draw() {
+        ctx.font = '28px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🔴', this.x, this.y);
+    }
+}
+
+class Block {
+    constructor(x, y, w, h, hp = 80) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.hp = hp;
+    }
+    draw() {
+        ctx.fillStyle = this.hp > 40 ? '#b45309' : '#d97706';
+        ctx.strokeStyle = '#451a03';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(this.x, this.y, this.w, this.h, 4);
+        ctx.fill();
+        ctx.stroke();
+    }
+}
+
+class Enemy {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 16;
+    }
+    draw() {
+        ctx.font = '26px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🐷', this.x, this.y);
+    }
+}
+
+function updateHUD() {
+    document.getElementById('hud-level').innerText = `Level ${currentLevel}`;
+    document.getElementById('hud-birds').innerText = `Birds: ${birdsRemaining}`;
+    document.getElementById('hud-score').innerText = `Score: ${score}`;
+}
+
+function initLevel(level) {
+    currentLevel = level;
+    birdsRemaining = 3;
+    dragPos = { x: slingshot.x, y: slingshot.y };
+    currentBird = new Bird(slingshot.x, slingshot.y);
+
+    blocks = [];
+    enemies = [];
+    
+    let baseX = W - 350;
+    let baseY = H - 80;
+
+    // Simple target tower setup
+    for (let i = 0; i < 3; i++) {
+        blocks.push(new Block(baseX + i * 60, baseY - 120, 20, 120, 80));
+        blocks.push(new Block(baseX, baseY - 140 - (i * 25), 140, 20, 60));
+        enemies.push(new Enemy(baseX + 30 + i * 40, baseY - 30));
+    }
+
+    updateHUD();
+}
+
+function getEventPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: (clientX - rect.left) * (W / rect.width),
+        y: (clientY - rect.top) * (H / rect.height)
+    };
+}
+
+function startDrag(e) {
+    if (gameState !== 'PLAYING' || !currentBird || currentBird.launched) return;
+    const pos = getEventPos(e);
+    const dist = Math.hypot(pos.x - slingshot.x, pos.y - slingshot.y);
+    if (dist < 60) {
+        isDragging = true;
+    }
+}
+
+function moveDrag(e) {
+    if (!isDragging) return;
+    const pos = getEventPos(e);
+    const angle = Math.atan2(pos.y - slingshot.y, pos.x - slingshot.x);
+    const dist = Math.min(Math.hypot(pos.x - slingshot.x, pos.y - slingshot.y), 110);
+
+    dragPos.x = slingshot.x + Math.cos(angle) * dist;
+    dragPos.y = slingshot.y + Math.sin(angle) * dist;
+
+    currentBird.x = dragPos.x;
+    currentBird.y = dragPos.y;
+}
+
+function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const dx = slingshot.x - dragPos.x;
+    const dy = slingshot.y - dragPos.y;
+
+    currentBird.vx = dx * 0.22;
+    currentBird.vy = dy * 0.22;
+    currentBird.launched = true;
+
+    setTimeout(checkTurn, 3500);
+}
+
+canvas.addEventListener('mousedown', startDrag);
+canvas.addEventListener('mousemove', moveDrag);
+window.addEventListener('mouseup', endDrag);
+
+canvas.addEventListener('touchstart', startDrag, { passive: false });
+canvas.addEventListener('touchmove', moveDrag, { passive: false });
+window.addEventListener('touchend', endDrag);
+
+function checkTurn() {
+    if (gameState !== 'PLAYING') return;
+
+    if (enemies.length === 0) {
+        gameState = 'END';
+        score += 100;
+        document.getElementById('end-title').innerText = 'LEVEL CLEAR! 🎉';
+        document.getElementById('end-subtitle').innerText = `Your score: ${score}`;
+        document.getElementById('end-screen').classList.remove('hidden');
+        return;
+    }
+
+    birdsRemaining--;
+    updateHUD();
+
+    if (birdsRemaining <= 0) {
+        gameState = 'END';
+        document.getElementById('end-title').innerText = 'GAME OVER 💥';
+        document.getElementById('end-subtitle').innerText = 'Out of birds!';
+        document.getElementById('end-screen').classList.remove('hidden');
+    } else {
+        currentBird = new Bird(slingshot.x, slingshot.y);
+    }
+}
+
+function startGame() {
+    document.getElementById('start-screen').classList.add('hidden');
+    gameState = 'PLAYING';
+    score = 0;
+    initLevel(1);
+}
+
+function nextLevel() {
+    currentLevel++;
+    document.getElementById('end-screen').classList.add('hidden');
+    gameState = 'PLAYING';
+    initLevel(currentLevel);
+}
+
+function restartLevel() {
+    document.getElementById('end-screen').classList.add('hidden');
+    gameState = 'PLAYING';
+    initLevel(currentLevel);
+}
+
+function checkCollisions() {
+    if (!currentBird || !currentBird.launched) return;
+
+    blocks.forEach((b, index) => {
+        if (
+            currentBird.x + currentBird.radius > b.x &&
+            currentBird.x - currentBird.radius < b.x + b.w &&
+            currentBird.y + currentBird.radius > b.y &&
+            currentBird.y - currentBird.radius < b.y + b.h
+        ) {
+            b.hp -= 40;
+            currentBird.vx *= -0.5;
+            if (b.hp <= 0) blocks.splice(index, 1);
+        }
+    });
+
+    enemies.forEach((e, index) => {
+        const dist = Math.hypot(currentBird.x - e.x, currentBird.y - e.y);
+        if (dist < currentBird.radius + e.radius) {
+            enemies.splice(index, 1);
+            score += 50;
+            updateHUD();
+        }
+    });
+}
+
+function render() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Sky & Ground
+    let grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#38bdf8');
+    grad.addColorStop(1, '#4ade80');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(0, H - 80, W, 80);
+
+    if (gameState === 'PLAYING') {
+        if (isDragging) {
+            ctx.strokeStyle = '#7c2d12';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(slingshot.x - 15, slingshot.y);
+            ctx.lineTo(dragPos.x, dragPos.y);
+            ctx.lineTo(slingshot.x + 15, slingshot.y);
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#7c2d12';
+        ctx.fillRect(slingshot.x - 8, slingshot.y, 16, H - 80 - slingshot.y);
+
+        if (currentBird) {
+            currentBird.update();
+            currentBird.draw();
+            checkCollisions();
+        }
+
+        blocks.forEach(b => b.draw());
+        enemies.forEach(e => e.draw());
+    }
+
+    requestAnimationFrame(render);
+}
+
+render();
+</script>
+</body>
+</html>
