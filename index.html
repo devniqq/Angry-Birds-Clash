@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -13,7 +13,7 @@
             -webkit-user-select: none;
         }
         body {
-            background: #090d16;
+            background: #0f172a;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -28,12 +28,12 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            max-width: 1280px;
-            max-height: 720px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            border-radius: 12px;
+            max-width: 1000px;
+            max-height: 600px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border-radius: 16px;
             overflow: hidden;
-            background: #111827;
+            background: #1e293b;
         }
         canvas {
             width: 100%;
@@ -50,7 +50,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(9, 13, 22, 0.88);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(8px);
             z-index: 10;
             transition: opacity 0.3s ease;
@@ -60,103 +60,71 @@
             pointer-events: none;
         }
         h1 {
-            font-size: 3rem;
+            font-size: 2.8rem;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #ef4444, #f59e0b);
+            background: linear-gradient(45deg, #f43f5e, #fb923c);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            letter-spacing: 2px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         p {
             font-size: 1.1rem;
-            color: #9ca3af;
-            margin-bottom: 20px;
+            color: #94a3b8;
+            margin-bottom: 25px;
             text-align: center;
-            max-width: 600px;
             padding: 0 20px;
         }
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
         .btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: linear-gradient(135deg, #f43f5e, #e11d48);
             border: none;
             color: #fff;
             font-weight: bold;
-            font-size: 1.1rem;
-            padding: 12px 28px;
+            font-size: 1.2rem;
+            padding: 14px 36px;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 8px 18px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.3);
             transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 22px rgba(239, 68, 68, 0.4);
         }
         .btn:active {
             transform: scale(0.95);
         }
-        .btn-secondary {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
-        }
-        .hud {
+        .score-board {
             position: absolute;
-            top: 15px;
-            left: 20px;
-            right: 20px;
+            top: 20px;
+            left: 0;
+            width: 100%;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 1.2rem;
+            padding: 0 25px;
+            font-size: 1.3rem;
             font-weight: bold;
             z-index: 5;
             pointer-events: none;
-            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
-        .hud-item {
-            background: rgba(17, 24, 39, 0.6);
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .level-text { color: #f59e0b; }
-        .birds-text { color: #ef4444; }
-        .score-text { color: #10b981; }
+        .score-val { color: #f43f5e; }
+        .birds-val { color: #38ef7d; }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <!-- HUD -->
-        <div class="hud">
-            <div class="hud-item level-text" id="hud-level">Level 1</div>
-            <div class="hud-item birds-text" id="hud-birds">Birds: 3</div>
-            <div class="hud-item score-text" id="hud-score">Score: 0</div>
+        <div class="score-board">
+            <div>Punkte: <span id="score" class="score-val">0</span></div>
+            <div>Vögel: <span id="birds" class="birds-val">3</span></div>
         </div>
 
-        <!-- MAIN MENU -->
         <div id="start-screen" class="ui-layer">
             <h1>Angry Birds Clash</h1>
-            <p>Pull back the slingshot, aim, and defeat all enemies to advance!</p>
-            <div class="btn-group">
-                <button class="btn" onclick="startGame()">START GAME</button>
-            </div>
+            <p>Ziehe an der Schleuder, ziele genau und besiege alle Schweine!</p>
+            <button class="btn" onclick="startGame()">STARTEN</button>
         </div>
 
-        <!-- GAME OVER / WIN SCREEN -->
-        <div id="end-screen" class="ui-layer hidden">
-            <h1 id="end-title">LEVEL CLEAR!</h1>
-            <p id="end-subtitle">Great shot!</p>
-            <div class="btn-group">
-                <button class="btn" id="next-btn" onclick="nextLevel()">NEXT LEVEL</button>
-                <button class="btn btn-secondary" onclick="restartLevel()">RETRY</button>
-            </div>
+        <div id="gameover-screen" class="ui-layer hidden">
+            <h1 id="gameover-title">Game Over!</h1>
+            <p id="final-score">Punkte: 0</p>
+            <button class="btn" onclick="startGame()">NOCHMAL</button>
         </div>
 
         <canvas id="canvas"></canvas>
@@ -166,16 +134,22 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-let W = 1280, H = 720;
-let currentLevel = 1;
-let score = 0;
-let birdsRemaining = 3;
+const scoreEl = document.getElementById('score');
+const birdsEl = document.getElementById('birds');
+const startScreen = document.getElementById('start-screen');
+const gameoverScreen = document.getElementById('gameover-screen');
+const gameoverTitle = document.getElementById('gameover-title');
+const finalScoreEl = document.getElementById('final-score');
 
-let slingshot = { x: 180, y: H - 180 };
+let W = 1000, H = 600;
+let score = 0;
+let birdsLeft = 3;
+let gameState = 'START';
+
+let slingshot = { x: 150, y: H - 180 };
 let currentBird = null;
 let blocks = [];
-let enemies = [];
-let gameState = 'START'; // START, PLAYING, END
+let pigs = [];
 
 let isDragging = false;
 let dragPos = { x: slingshot.x, y: slingshot.y };
@@ -186,23 +160,24 @@ function resize() {
     H = container.clientHeight;
     canvas.width = W;
     canvas.height = H;
-    slingshot = { x: 180, y: H - 180 };
+    slingshot = { x: 150, y: H - 180 };
 }
 window.addEventListener('resize', resize);
 resize();
 
 class Bird {
-    constructor(x, y) {
+    constructor(x, y, color = '#f43f5e') {
         this.x = x;
         this.y = y;
         this.vx = 0;
         this.vy = 0;
-        this.radius = 18;
+        this.radius = 16;
+        this.color = color;
         this.launched = false;
     }
     update() {
         if (this.launched) {
-            this.vy += 0.35; // Gravity
+            this.vy += 0.35; // Schwerkraft
             this.x += this.vx;
             this.y += this.vy;
             this.vx *= 0.99;
@@ -216,10 +191,29 @@ class Bird {
         }
     }
     draw() {
-        ctx.font = '28px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🔴', this.x, this.y);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Augen
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(this.x + 6, this.y - 4, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(this.x + 7, this.y - 4, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Schnabel
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.moveTo(this.x + 10, this.y);
+        ctx.lineTo(this.x + 20, this.y + 4);
+        ctx.lineTo(this.x + 10, this.y + 8);
+        ctx.closePath();
+        ctx.fill();
     }
 }
 
@@ -242,46 +236,58 @@ class Block {
     }
 }
 
-class Enemy {
+class Pig {
     constructor(x, y) {
         this.x = x;
         this.y = y;
         this.radius = 16;
     }
     draw() {
-        ctx.font = '26px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('🐷', this.x, this.y);
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ohren
+        ctx.beginPath();
+        ctx.arc(this.x - 10, this.y - 12, 5, 0, Math.PI * 2);
+        ctx.arc(this.x + 10, this.y - 12, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nase
+        ctx.fillStyle = '#047857';
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y + 2, 6, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
     }
 }
 
-function updateHUD() {
-    document.getElementById('hud-level').innerText = `Level ${currentLevel}`;
-    document.getElementById('hud-birds').innerText = `Birds: ${birdsRemaining}`;
-    document.getElementById('hud-score').innerText = `Score: ${score}`;
-}
-
-function initLevel(level) {
-    currentLevel = level;
-    birdsRemaining = 3;
+function initLevel() {
+    birdsLeft = 3;
+    score = 0;
+    birdsEl.innerText = birdsLeft;
+    scoreEl.innerText = score;
     dragPos = { x: slingshot.x, y: slingshot.y };
     currentBird = new Bird(slingshot.x, slingshot.y);
 
     blocks = [];
-    enemies = [];
-    
-    let baseX = W - 350;
+    pigs = [];
+
+    let baseX = W - 300;
     let baseY = H - 80;
 
-    // Simple target tower setup
-    for (let i = 0; i < 3; i++) {
-        blocks.push(new Block(baseX + i * 60, baseY - 120, 20, 120, 80));
-        blocks.push(new Block(baseX, baseY - 140 - (i * 25), 140, 20, 60));
-        enemies.push(new Enemy(baseX + 30 + i * 40, baseY - 30));
-    }
+    // Turm-Struktur bauen
+    blocks.push(new Block(baseX, baseY - 120, 20, 120));
+    blocks.push(new Block(baseX + 100, baseY - 120, 20, 120));
+    blocks.push(new Block(baseX - 10, baseY - 140, 140, 20));
 
-    updateHUD();
+    blocks.push(new Block(baseX + 20, baseY - 260, 20, 120));
+    blocks.push(new Block(baseX + 80, baseY - 260, 20, 120));
+    blocks.push(new Block(baseX + 10, baseY - 280, 100, 20));
+
+    // Schweinchen platzieren
+    pigs.push(new Pig(baseX + 60, baseY - 20));
+    pigs.push(new Pig(baseX + 60, baseY - 160));
 }
 
 function getEventPos(e) {
@@ -298,7 +304,7 @@ function startDrag(e) {
     if (gameState !== 'PLAYING' || !currentBird || currentBird.launched) return;
     const pos = getEventPos(e);
     const dist = Math.hypot(pos.x - slingshot.x, pos.y - slingshot.y);
-    if (dist < 60) {
+    if (dist < 50) {
         isDragging = true;
     }
 }
@@ -307,7 +313,7 @@ function moveDrag(e) {
     if (!isDragging) return;
     const pos = getEventPos(e);
     const angle = Math.atan2(pos.y - slingshot.y, pos.x - slingshot.x);
-    const dist = Math.min(Math.hypot(pos.x - slingshot.x, pos.y - slingshot.y), 110);
+    const dist = Math.min(Math.hypot(pos.x - slingshot.x, pos.y - slingshot.y), 90);
 
     dragPos.x = slingshot.x + Math.cos(angle) * dist;
     dragPos.y = slingshot.y + Math.sin(angle) * dist;
@@ -319,7 +325,7 @@ function moveDrag(e) {
 function endDrag() {
     if (!isDragging) return;
     isDragging = false;
-    
+
     const dx = slingshot.x - dragPos.x;
     const dy = slingshot.y - dragPos.y;
 
@@ -341,46 +347,33 @@ window.addEventListener('touchend', endDrag);
 function checkTurn() {
     if (gameState !== 'PLAYING') return;
 
-    if (enemies.length === 0) {
-        gameState = 'END';
-        score += 100;
-        document.getElementById('end-title').innerText = 'LEVEL CLEAR! 🎉';
-        document.getElementById('end-subtitle').innerText = `Your score: ${score}`;
-        document.getElementById('end-screen').classList.remove('hidden');
+    if (pigs.length === 0) {
+        gameState = 'GAMEOVER';
+        gameoverTitle.innerText = 'GEWONNEN! 🎉';
+        finalScoreEl.innerText = `Punkte: ${score}`;
+        gameoverScreen.classList.remove('hidden');
         return;
     }
 
-    birdsRemaining--;
-    updateHUD();
+    birdsLeft--;
+    birdsEl.innerText = birdsLeft;
 
-    if (birdsRemaining <= 0) {
-        gameState = 'END';
-        document.getElementById('end-title').innerText = 'GAME OVER 💥';
-        document.getElementById('end-subtitle').innerText = 'Out of birds!';
-        document.getElementById('end-screen').classList.remove('hidden');
+    if (birdsLeft <= 0) {
+        gameState = 'GAMEOVER';
+        gameoverTitle.innerText = 'GAME OVER 💥';
+        finalScoreEl.innerText = `Punkte: ${score}`;
+        gameoverScreen.classList.remove('hidden');
     } else {
-        currentBird = new Bird(slingshot.x, slingshot.y);
+        const colors = ['#f43f5e', '#fbbf24', '#60a5fa'];
+        currentBird = new Bird(slingshot.x, slingshot.y, colors[3 - birdsLeft]);
     }
 }
 
 function startGame() {
-    document.getElementById('start-screen').classList.add('hidden');
     gameState = 'PLAYING';
-    score = 0;
-    initLevel(1);
-}
-
-function nextLevel() {
-    currentLevel++;
-    document.getElementById('end-screen').classList.add('hidden');
-    gameState = 'PLAYING';
-    initLevel(currentLevel);
-}
-
-function restartLevel() {
-    document.getElementById('end-screen').classList.add('hidden');
-    gameState = 'PLAYING';
-    initLevel(currentLevel);
+    startScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    initLevel();
 }
 
 function checkCollisions() {
@@ -399,12 +392,12 @@ function checkCollisions() {
         }
     });
 
-    enemies.forEach((e, index) => {
-        const dist = Math.hypot(currentBird.x - e.x, currentBird.y - e.y);
-        if (dist < currentBird.radius + e.radius) {
-            enemies.splice(index, 1);
-            score += 50;
-            updateHUD();
+    pigs.forEach((p, index) => {
+        const dist = Math.hypot(currentBird.x - p.x, currentBird.y - p.y);
+        if (dist < currentBird.radius + p.radius) {
+            pigs.splice(index, 1);
+            score += 100;
+            scoreEl.innerText = score;
         }
     });
 }
@@ -412,7 +405,7 @@ function checkCollisions() {
 function render() {
     ctx.clearRect(0, 0, W, H);
 
-    // Sky & Ground
+    // Himmel & Boden
     let grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, '#38bdf8');
     grad.addColorStop(1, '#4ade80');
@@ -423,18 +416,20 @@ function render() {
     ctx.fillRect(0, H - 80, W, 80);
 
     if (gameState === 'PLAYING') {
+        // Schleuder-Gummi
         if (isDragging) {
             ctx.strokeStyle = '#7c2d12';
-            ctx.lineWidth = 6;
+            ctx.lineWidth = 5;
             ctx.beginPath();
-            ctx.moveTo(slingshot.x - 15, slingshot.y);
+            ctx.moveTo(slingshot.x - 12, slingshot.y);
             ctx.lineTo(dragPos.x, dragPos.y);
-            ctx.lineTo(slingshot.x + 15, slingshot.y);
+            ctx.lineTo(slingshot.x + 12, slingshot.y);
             ctx.stroke();
         }
 
+        // Schleuder-Holz
         ctx.fillStyle = '#7c2d12';
-        ctx.fillRect(slingshot.x - 8, slingshot.y, 16, H - 80 - slingshot.y);
+        ctx.fillRect(slingshot.x - 6, slingshot.y, 12, H - 80 - slingshot.y);
 
         if (currentBird) {
             currentBird.update();
@@ -443,7 +438,7 @@ function render() {
         }
 
         blocks.forEach(b => b.draw());
-        enemies.forEach(e => e.draw());
+        pigs.forEach(p => p.draw());
     }
 
     requestAnimationFrame(render);
